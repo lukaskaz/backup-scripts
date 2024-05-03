@@ -1,7 +1,0 @@
-sudo ./samba-nas.sh
-sudo ./start_backup.sh 4096
-sudo ./start_backup.sh 2048
-
-sudo fdisk -l
-sudo ./restore_rpimage.sh ./rpinode1-202205072155.img /dev/sdb
-sudo ./expand_rootfs.sh
