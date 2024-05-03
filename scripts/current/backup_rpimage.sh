@@ -234,13 +234,11 @@ do_backup() {
 
     local rsyncopt
 
-    #rsyncopt="-aEvx --del --stats"
     rsyncopt="-axAXUHP --numeric-ids"
     [ -n "${opt_log}" ] && rsyncopt="$rsyncopt --log-file ${LOG}"
 
     if mountpoint -q "${MOUNTDIR}"; then
         msg "Starting rsync backup of / and ${BOOTMP} to ${MOUNTDIR}"
-        msg "rsync ${rsyncopt} ${BOOTMP}/ ${MOUNTDIR}/${BOOTMP}"
         rsync ${rsyncopt} "${BOOTMP}/" "${MOUNTDIR}/${BOOTMP}"
 
         msg "\nrsync / to ${MOUNTDIR}"

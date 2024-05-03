@@ -4,7 +4,6 @@ BACKUPSIZE=$1
 BACKUPSCRIPT=./backup_rpimage.sh
 BACKUPNAME="test-$(hostname)-$(date +%Y%m%d%H%M).img"
 BACKUPPATH=/mnt/nas/rpi-ci-monitoring/backup
-#BACKUPPATH=./
 BACKUP="$BACKUPPATH/$BACKUPNAME"
 
 echo -e "Initiating full backup of size ${BACKUPSIZE}MB and\nlocation $BACKUP"
