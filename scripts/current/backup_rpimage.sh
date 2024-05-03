@@ -55,34 +55,11 @@ do_create() {
         msgfail "${IMAGE} has not been created or has zero size"
     fi
 
-    if [ "${PARTSCHEME}" == "GPT" ]; then
-        msg "Creating partitions on ${LOOPBACK} using GTP scheme"
-        parted -s "${LOOPBACK}" mktable gpt
-        parted -s "${LOOPBACK}" mkpart "BOOT" fat32 4MiB ${BOOTSIZE}MiB
-        parted -s "${LOOPBACK}" mkpart "ROOT" ext4 ${BOOTSIZE}MiB 100%
-        parted -s "${LOOPBACK}" set 1 legacy_boot on
-    elif [  "${PARTSCHEME}" == "MBR" ]; then 
-        #
-        # consider to use GPT partition scheme
-        #
-        msg "Creating partitions on ${LOOPBACK}"
-        parted -s "${LOOPBACK}" mktable msdos
-        #parted -s "${LOOPBACK}" mkpart primary fat32 4MiB ${BOOTSIZE}MiB
-        parted -s "${LOOPBACK}" mkpart primary fat32 ${BOOTSTART}s ${BOOTEND}s
-	parted -s "${LOOPBACK}" mkpart primary ext4 ${ROOTSTART}s 100%
-        parted -s "${LOOPBACK}" set 1 boot on
-    else
-	SDCARD=/dev/mmcblk0
-        msg "Creating partitions on ${LOOPBACK} using legacy procedure"
-    	echo "parted -s ${LOOPBACK} mklabel msdos"
-    	echo "sfdisk --dump ${SDCARD} | sfdisk --force ${LOOPBACK}"
-    	msg "Formatting partitions"
-    	echo "partx --add ${LOOPBACK}"
-    	echo "mkfs.vfat -I ${LOOPBACK}p1"
-    	echo "mkfs.ext4 ${LOOPBACK}p2"
-	echo "clone"
-	return 
-    fi
+    msg "Creating partitions on ${LOOPBACK}"
+    parted -s "${LOOPBACK}" mktable msdos
+    parted -s "${LOOPBACK}" mkpart primary fat32 ${BOOTSTART}S ${BOOTEND}S
+    parted -s "${LOOPBACK}" mkpart primary ext4 ${ROOTSTART}S 100%
+    parted -s "${LOOPBACK}" set 1 boot on
 
     msg "Formatting partitions"
     partx --add "${LOOPBACK}"
@@ -257,7 +234,8 @@ do_backup() {
 
     local rsyncopt
 
-    rsyncopt="-aEvx --del --stats"
+    #rsyncopt="-aEvx --del --stats"
+    rsyncopt="-axAXUHP --numeric-ids"
     [ -n "${opt_log}" ] && rsyncopt="$rsyncopt --log-file ${LOG}"
 
     if mountpoint -q "${MOUNTDIR}"; then
@@ -265,22 +243,22 @@ do_backup() {
         msg "rsync ${rsyncopt} ${BOOTMP}/ ${MOUNTDIR}/${BOOTMP}"
         rsync ${rsyncopt} "${BOOTMP}/" "${MOUNTDIR}/${BOOTMP}"
 
-	#return 7
-
         msg "\nrsync / to ${MOUNTDIR}"
-        rsync ${rsyncopt} --exclude='.gvfs/**' \
-            --exclude='tmp/**' \
-            --exclude='proc/**' \
-            --exclude='run/**' \
-            --exclude='sys/**' \
-            --exclude='mnt/**' \
-            --exclude='lost+found/**' \
-            --exclude='var/swap ' \
-            --exclude='var/log/** ' \
-            --exclude='home/*/.cache/**' \
-            --exclude='var/cache/apt/archives/**' \
-            --exclude='home/*/.vscode-server/' \
-            / "${MOUNTDIR}"/
+	rsync ${rsyncopt} \
+	  --exclude='.gvfs/**' \
+	  --exclude='lost+found/' \
+	  --exclude='dev/**' \
+	  --exclude='tmp/**' \
+	  --exclude='proc/**' \
+	  --exclude='run/**' \
+	  --exclude='sys/**' \
+	  --exclude='mnt/**' \
+	  --exclude='home/*/.cache/**' \
+	  --exclude='home/*/.vscode-server/' \
+	  --exclude='var/log/**' \
+	  --exclude='var/swap' \
+	  --exclude='var/cache/apt/archives/**' \
+	/ ${MOUNTDIR}/
     else
         msg "Skipping rsync since ${MOUNTDIR} is not a mount point"
     fi
@@ -506,8 +484,6 @@ shift $((OPTIND - 1))
 #
 # setting defaults
 #
-#declare -gxr BOOTSIZE=550
-#declare -gxr BOOTSIZE=512
 declare -gxr BOOTSECTORS=$(partx -s /dev/mmcblk0p1 | tail -1 | xargs | cut -d' ' -f2-4)
 declare -gxr BOOTSTART=$(echo $BOOTSECTORS | cut -d' ' -f1)
 declare -gxr BOOTEND=$(echo $BOOTSECTORS | cut -d' ' -f2)
@@ -518,8 +494,6 @@ declare -gxr ROOTSIZE=$(df -m --output=used / | tail -1) || msgfail "size of / c
 declare -gxr SIZE=${SIZEARG:-$((BOOTSIZE + ROOTSIZE + 500))} || msgfail "size of imagefile could not calculated"
 declare -gxr RSIZE=${RSIZE:-1000}
 declare -gxr BLOCKSIZE=1M
-#declare -gxr PARTSCHEME="GPT"
-declare -gxr PARTSCHEME="MBR"
 
 #
 # Preflight checks
