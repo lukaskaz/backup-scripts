@@ -2,7 +2,7 @@
 
 BACKUPSIZE=$1
 BACKUPSCRIPT=./backup_rpimage.sh
-BACKUPNAME="test-$(hostname)-$(date +%Y%m%d%H%M).img"
+BACKUPNAME="$(hostname)-$(date +%Y%m%d%H%M).img"
 BACKUPPATH=/mnt/nas/rpi-ci-monitoring/backup
 BACKUP="$BACKUPPATH/$BACKUPNAME"
 
