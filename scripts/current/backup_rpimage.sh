@@ -253,7 +253,7 @@ do_backup() {
 	  --exclude='mnt/**' \
 	  --exclude='home/*/.cache/**' \
 	  --exclude='home/*/.vscode-server/' \
-	  --exclude='var/log/**' \
+#	  --exclude='var/log/**' \
 	  --exclude='var/swap' \
 	  --exclude='var/cache/apt/archives/**' \
 	/ ${MOUNTDIR}/
