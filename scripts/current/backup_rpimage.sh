@@ -248,7 +248,6 @@ do_backup() {
 	  --exclude='dev/**' \
 	  --exclude='tmp/**' \
 	  --exclude='proc/**' \
-#	  --exclude='run/**' \
 	  --exclude='sys/**' \
 	  --exclude='mnt/**' \
 	  --exclude='home/*/.cache/**' \
